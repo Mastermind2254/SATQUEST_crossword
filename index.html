@@ -475,39 +475,109 @@
       margin-bottom: 0.75rem;
     }
 
-    /* Success riddle */
-    .riddle-box {
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(16, 185, 129, 0.5);
-      border-radius: 10px;
-      padding: 1rem;
-      margin: 0.75rem 0 0;
+    .coordinate-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px dashed rgba(16, 185, 129, 0.6);
+      border-radius: 8px;
+      padding: 0.85rem;
+      margin: 0.75rem 0;
     }
 
-    .riddle-label {
+    .coordinate-label {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #94a3b8;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.35rem;
     }
 
-    .riddle-text {
-      font-size: 1.05rem;
-      line-height: 1.6;
-      color: #e2e8f0;
-      white-space: pre-line;
-    }
-
-    .riddle-text.riddle-placeholder {
+    .coordinate {
       font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
       font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--accent-amber);
-      background: rgba(245, 158, 11, 0.12);
-      border: 2px dashed var(--accent-amber);
+      color: #a7f3d0;
+      word-break: break-all;
+    }
+
+    .coord-actions {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      margin-top: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      padding: 0.55rem 1rem;
+      font-size: 0.85rem;
       border-radius: 8px;
-      padding: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .btn-copy {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-copy:hover {
+      background: rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-sheet {
+      background: rgba(0, 242, 254, 0.2);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0, 242, 254, 0.4);
+    }
+
+    .btn-sheet:hover {
+      background: rgba(0, 242, 254, 0.35);
+    }
+
+    .team-submit-form {
+      display: grid;
+      gap: 0.65rem;
+      max-width: 420px;
+      margin: 1rem auto 0;
+    }
+
+    .team-submit-form label {
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    .team-submit-form input {
+      width: 100%;
+      padding: 0.7rem 0.8rem;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      border-radius: 8px;
+      background: rgba(2, 6, 23, 0.7);
+      color: var(--text-main);
+      font: inherit;
+    }
+
+    .team-submit-form input:focus {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 2px;
+    }
+
+    .submission-status {
+      min-height: 1.25rem;
+      color: #cbd5e1;
+      font-size: 0.85rem;
     }
 
     /* Clues Panel */
@@ -806,7 +876,7 @@
   </main>
 
   <footer>
-    <div>PARIKRAMAKA • Satellite Club Challenge • Solve all riddles to reach your location</div>
+    <div>PARIKRAMAKA • Satellite Club Challenge • Solve all riddles to decode campus coordinates</div>
     <div class="keyboard-hints">
       <span class="key-badge">Click</span> Toggle Across/Down
       <span class="key-badge">Arrows</span> Move Cell
@@ -815,10 +885,16 @@
     </div>
   </footer>
 
+  <iframe name="sheet-submit-frame" title="Google Sheets submission response" hidden></iframe>
+
   <script>
-    // PRESERVED ORIGINAL CROSSWORD DATA (location coordinates removed)
+    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbalwT4pRhRaU0cLwT0sb8NprSTUlBMfKmbnSAgClT3BdnUAftOwV-h49DFe6jORCwIQ/exec";
+    const GOOGLE_SHEET_URL = "";
+
+    // PRESERVED ORIGINAL CROSSWORD DATA
     const crosswordSets = [
       {
+        coordinate: "LA404",
         pattern: [
           ['#', '#', '#', 'R', '#' ,'#' ,'#' ,'#' ,'#' ,'#'],
           ['#', '#', '#', 'E', '#' ,'#' ,'#' ,'#' ,'#' ,'#'],
@@ -853,6 +929,7 @@
         }
       },
       {
+        coordinate: "LA301",
         pattern: [
           ['#', '#', '#', 'P', '#' ,'#' ,'#' ,'#' ,'#'],
           ['#', '#', '#', 'O', 'R' ,'B' ,'I' ,'T' ,'#'],
@@ -890,6 +967,7 @@
         }
       },
       {
+        coordinate: "LA217",
         pattern: [
           ['#', '#', '#', '#', '#' ,'#' ,'T' ,'#' ,'S' ,'#' ,'#' ,'#'],
           ['S', 'A', 'T', 'E', 'L' ,'L' ,'I' ,'T' ,'E' ,'#' ,'#' ,'#'],
@@ -961,18 +1039,6 @@
     const timerDisplay = document.getElementById("mission-timer");
     const progressText = document.getElementById("progress-text");
     const progressBarFill = document.getElementById("progress-bar-fill");
-
-    // Common riddle shown after ANY crossword is solved. Replace the text below.
-    const COMMON_RIDDLE = `Behind the land of reactions, I quietly stand,
-Facing a green and lively gathering land.
-
-A little craving spot nearby for those who roam,
-A silent stump stands where green grasses call home.
-
-To my left, knowledge rests in an embrace,
-To my right, wheels find their place.
-
-What place in NIT Rourkela am I?`;
 
     // ==========================================
     // BUILD WORD DICTIONARY & CELL CROSS-REFERENCES
@@ -1360,7 +1426,7 @@ What place in NIT Rourkela am I?`;
     updateProgress();
 
     // ==========================================
-    // VERIFICATION & RIDDLE REVEAL
+    // VERIFICATION & COORDINATE REVEAL
     // ==========================================
     checkBtn.addEventListener("click", () => {
       let correct = 0;
@@ -1386,7 +1452,15 @@ What place in NIT Rourkela am I?`;
       }
 
       if (correct === total) {
-        const isPlaceholder = COMMON_RIDDLE.trim() === "[INSERT RIDDLE HERE]";
+        const coordinate = selectedCrossword.coordinate;
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const elapsedTime = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
+        const sheetLink = GOOGLE_SHEET_URL
+          ? `<a href="${GOOGLE_SHEET_URL}" target="_blank" rel="noopener noreferrer" class="btn-action btn-sheet">Open Google Sheet</a>`
+          : "";
+        const scriptLink = GOOGLE_APPS_SCRIPT_URL
+          ? `<a href="${GOOGLE_APPS_SCRIPT_URL}" target="_blank" rel="noopener noreferrer" class="btn-action btn-sheet">Apps Script link</a>`
+          : "";
 
         resultContainer.innerHTML = `
           <div class="result-box success">
@@ -1397,14 +1471,73 @@ What place in NIT Rourkela am I?`;
               </svg>
               MISSION DECRYPTED SUCCESSFULLY!
             </div>
-            <div style="font-size: 0.9rem; color: #cbd5e1;">Solve the final riddle:</div>
-
-            <div class="riddle-box">
-              <div class="riddle-label">Final Riddle</div>
-              <div class="riddle-text${isPlaceholder ? ' riddle-placeholder' : ''}">${COMMON_RIDDLE}</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1;">Target Coordinates Unlocked:</div>
+            
+            <div class="coordinate-box">
+              <div class="coordinate-label">GPS Waypoint Coordinates</div>
+              <div class="coordinate" id="coord-val">${coordinate}</div>
             </div>
+
+            <div>Time taken: <strong>${elapsedTime}</strong></div>
+
+            <div class="coord-actions">
+              <button id="copy-coord-btn" class="btn-action btn-copy">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                </svg>
+                <span id="copy-text">Copy Coordinates</span>
+              </button>
+              ${sheetLink}
+              ${scriptLink}
+            </div>
+
+            <form id="team-submit-form" class="team-submit-form" method="POST" target="sheet-submit-frame">
+              <label for="team-name">Team name</label>
+              <input id="team-name" name="teamName" type="text" maxlength="100" required autocomplete="organization" placeholder="Enter your team name">
+              <input type="hidden" name="elapsedSeconds" value="${elapsedSeconds}">
+              <input type="hidden" name="puzzle" value="${sectorLabels[puzzleIndex] || `Sector Alpha-0${puzzleIndex + 1}`}">
+              <button id="submit-team-btn" class="btn-action btn-copy" type="submit">Submit time to Google Sheets</button>
+              <div id="submission-status" class="submission-status" role="status" aria-live="polite"></div>
+            </form>
           </div>
         `;
+
+        const teamForm = document.getElementById("team-submit-form");
+        const submitTeamBtn = document.getElementById("submit-team-btn");
+        const submissionStatus = document.getElementById("submission-status");
+        const submissionFrame = document.querySelector('iframe[name="sheet-submit-frame"]');
+        let submissionPending = false;
+
+        if (GOOGLE_APPS_SCRIPT_URL) {
+          teamForm.action = GOOGLE_APPS_SCRIPT_URL;
+          teamForm.addEventListener("submit", () => {
+            submissionPending = true;
+            submitTeamBtn.disabled = true;
+            submissionStatus.textContent = "Submitting team and time...";
+          });
+          submissionFrame.addEventListener("load", () => {
+            if (!submissionPending) return;
+            submissionPending = false;
+            submitTeamBtn.disabled = false;
+            submissionStatus.textContent = "Request sent. Check the Google Sheet to confirm it was recorded.";
+          });
+        } else {
+          submitTeamBtn.disabled = true;
+          submissionStatus.textContent = "Google Sheets is not connected yet. Add the deployed Apps Script URL in GOOGLE_APPS_SCRIPT_URL to enable submission.";
+        }
+
+        // Wire Copy Button
+        const copyBtn = document.getElementById("copy-coord-btn");
+        const copyText = document.getElementById("copy-text");
+        copyBtn.addEventListener("click", () => {
+          navigator.clipboard.writeText(coordinate).then(() => {
+            copyText.textContent = "Copied to Clipboard!";
+            setTimeout(() => {
+              copyText.textContent = "Copy Coordinates";
+            }, 2500);
+          });
+        });
 
         // Auto-scroll to result on mobile
         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
