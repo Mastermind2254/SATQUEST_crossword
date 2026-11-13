@@ -475,70 +475,39 @@
       margin-bottom: 0.75rem;
     }
 
-    .coordinate-box {
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px dashed rgba(16, 185, 129, 0.6);
-      border-radius: 8px;
-      padding: 0.85rem;
-      margin: 0.75rem 0;
+    /* Success riddle */
+    .riddle-box {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      border-radius: 10px;
+      padding: 1rem;
+      margin: 0.75rem 0 0;
     }
 
-    .coordinate-label {
+    .riddle-label {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #94a3b8;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.5rem;
     }
 
-    .coordinate {
+    .riddle-text {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      white-space: pre-line;
+    }
+
+    .riddle-text.riddle-placeholder {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem;
       font-weight: 700;
-      color: #a7f3d0;
-      word-break: break-all;
-    }
-
-    .coord-actions {
-      display: flex;
-      gap: 0.6rem;
-      justify-content: center;
-      margin-top: 0.85rem;
-      flex-wrap: wrap;
-    }
-
-    .btn-action {
-      padding: 0.55rem 1rem;
-      font-size: 0.85rem;
+      letter-spacing: 1px;
+      color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.12);
+      border: 2px dashed var(--accent-amber);
       border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-
-    .btn-copy {
-      background: rgba(16, 185, 129, 0.25);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-    }
-
-    .btn-copy:hover {
-      background: rgba(16, 185, 129, 0.4);
-    }
-
-    .btn-maps {
-      background: rgba(0, 242, 254, 0.2);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(0, 242, 254, 0.4);
-    }
-
-    .btn-maps:hover {
-      background: rgba(0, 242, 254, 0.35);
+      padding: 0.9rem;
     }
 
     /* Clues Panel */
@@ -837,7 +806,7 @@
   </main>
 
   <footer>
-    <div>PARIKRAMAKA • Satellite Club Challenge • Solve all riddles to decode campus coordinates</div>
+    <div>PARIKRAMAKA • Satellite Club Challenge • Solve all riddles to reach your location</div>
     <div class="keyboard-hints">
       <span class="key-badge">Click</span> Toggle Across/Down
       <span class="key-badge">Arrows</span> Move Cell
@@ -847,10 +816,9 @@
   </footer>
 
   <script>
-    // PRESERVED ORIGINAL CROSSWORD DATA
+    // PRESERVED ORIGINAL CROSSWORD DATA (location coordinates removed)
     const crosswordSets = [
       {
-        coordinate: "22.252569082240043, 84.90434822856787",
         pattern: [
           ['#', '#', '#', 'R', '#' ,'#' ,'#' ,'#' ,'#' ,'#'],
           ['#', '#', '#', 'E', '#' ,'#' ,'#' ,'#' ,'#' ,'#'],
@@ -885,7 +853,6 @@
         }
       },
       {
-        coordinate: "22.250712319230335, 84.90151293404345",
         pattern: [
           ['#', '#', '#', 'P', '#' ,'#' ,'#' ,'#' ,'#'],
           ['#', '#', '#', 'O', 'R' ,'B' ,'I' ,'T' ,'#'],
@@ -923,7 +890,6 @@
         }
       },
       {
-        coordinate: "22.250397785515588, 84.90369281216677",
         pattern: [
           ['#', '#', '#', '#', '#' ,'#' ,'T' ,'#' ,'S' ,'#' ,'#' ,'#'],
           ['S', 'A', 'T', 'E', 'L' ,'L' ,'I' ,'T' ,'E' ,'#' ,'#' ,'#'],
@@ -995,6 +961,18 @@
     const timerDisplay = document.getElementById("mission-timer");
     const progressText = document.getElementById("progress-text");
     const progressBarFill = document.getElementById("progress-bar-fill");
+
+    // Common riddle shown after ANY crossword is solved. Replace the text below.
+    const COMMON_RIDDLE = `Behind the land of reactions, I quietly stand,
+Facing a green and lively gathering land.
+
+A little craving spot nearby for those who roam,
+A silent stump stands where green grasses call home.
+
+To my left, knowledge rests in an embrace,
+To my right, wheels find their place.
+
+What am I?`;
 
     // ==========================================
     // BUILD WORD DICTIONARY & CELL CROSS-REFERENCES
@@ -1382,7 +1360,7 @@
     updateProgress();
 
     // ==========================================
-    // VERIFICATION & COORDINATE REVEAL
+    // VERIFICATION & RIDDLE REVEAL
     // ==========================================
     checkBtn.addEventListener("click", () => {
       let correct = 0;
@@ -1408,8 +1386,7 @@
       }
 
       if (correct === total) {
-        const coordinate = selectedCrossword.coordinate;
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinate)}`;
+        const isPlaceholder = COMMON_RIDDLE.trim() === "[INSERT RIDDLE HERE]";
 
         resultContainer.innerHTML = `
           <div class="result-box success">
@@ -1420,45 +1397,14 @@
               </svg>
               MISSION DECRYPTED SUCCESSFULLY!
             </div>
-            <div style="font-size: 0.9rem; color: #cbd5e1;">Target Coordinates Unlocked:</div>
-            
-            <div class="coordinate-box">
-              <div class="coordinate-label">GPS Waypoint Coordinates</div>
-              <div class="coordinate" id="coord-val">${coordinate}</div>
-            </div>
+            <div style="font-size: 0.9rem; color: #cbd5e1;">Solve the final riddle:</div>
 
-            <div class="coord-actions">
-              <button id="copy-coord-btn" class="btn-action btn-copy">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
-                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
-                </svg>
-                <span id="copy-text">Copy Coordinates</span>
-              </button>
-
-              <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="btn-action btn-maps">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
-                  <line x1="9" x2="9" y1="3" y2="18"></line>
-                  <line x1="15" x2="15" y1="6" y2="21"></line>
-                </svg>
-                Open in Google Maps
-              </a>
+            <div class="riddle-box">
+              <div class="riddle-label">Final Riddle</div>
+              <div class="riddle-text${isPlaceholder ? ' riddle-placeholder' : ''}">${COMMON_RIDDLE}</div>
             </div>
           </div>
         `;
-
-        // Wire Copy Button
-        const copyBtn = document.getElementById("copy-coord-btn");
-        const copyText = document.getElementById("copy-text");
-        copyBtn.addEventListener("click", () => {
-          navigator.clipboard.writeText(coordinate).then(() => {
-            copyText.textContent = "Copied to Clipboard!";
-            setTimeout(() => {
-              copyText.textContent = "Copy Coordinates";
-            }, 2500);
-          });
-        });
 
         // Auto-scroll to result on mobile
         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
